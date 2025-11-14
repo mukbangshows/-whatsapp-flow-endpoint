@@ -137,7 +137,6 @@ def flow_endpoint():
         if flow_data.get('action') == 'ping' or flow_data.get('screen') == 'PING':
             print("Health check ping detected")
             response_data = {
-                "version": "3.0",
                 "data": {
                     "status": "active"
                 }
@@ -164,7 +163,6 @@ def flow_endpoint():
                 print(f"Error sending to n8n: {e}")
             
             response_data = {
-                "version": "3.0",
                 "data": {
                     "status": "success"
                 }
@@ -175,6 +173,7 @@ def flow_endpoint():
         encrypted_response = encrypt_response(response_data, aes_key, iv)
         print(f"Encrypted response (first 50 chars): {encrypted_response[:50]}")
         
+        # Return just the base64 string as plain text
         return Response(encrypted_response, mimetype='text/plain', status=200)
         
     except Exception as e:
