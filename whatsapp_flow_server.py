@@ -84,8 +84,12 @@ def decrypt_request(data):
     return flow_data, aes_key, iv
 
 def encrypt_response(response_data, aes_key, iv):
-    """Encrypt the response"""
+    """Encrypt the response - use SAME IV as request"""
     response_string = json.dumps(response_data)
+    
+    print(f"Encrypting with AES key length: {len(aes_key)} bytes")
+    print(f"IV length: {len(iv)} bytes")
+    print(f"Response to encrypt: {response_string}")
     
     cipher = Cipher(
         algorithms.AES(aes_key),
@@ -98,6 +102,9 @@ def encrypt_response(response_data, aes_key, iv):
     # Get auth tag and combine
     auth_tag = encryptor.tag
     encrypted_with_tag = encrypted + auth_tag
+    
+    print(f"Auth tag length: {len(auth_tag)} bytes")
+    print(f"Encrypted data length: {len(encrypted_with_tag)} bytes")
     
     # Return as base64
     return base64.b64encode(encrypted_with_tag).decode()
