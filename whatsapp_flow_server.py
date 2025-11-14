@@ -104,27 +104,31 @@ def encrypt_response(response_data, aes_key, iv):
 
 @app.route('/whatsapp-flow', methods=['GET'])
 def health_check():
-    """Health check endpoint"""
+    """Health check endpoint - returns plain base64"""
     response = {
         "version": "3.0",
         "data": {
             "status": "active"
         }
     }
+    # Just return base64 encoded JSON for GET requests
     base64_response = base64.b64encode(json.dumps(response).encode()).decode()
-    return Response(base64_response, mimetype='text/plain')
+    return Response(base64_response, mimetype='text/plain', status=200)
 
 @app.route('/whatsapp-flow', methods=['POST'])
 def flow_endpoint():
     """Handle WhatsApp Flow requests"""
     try:
         data = request.get_json()
+        print(f"Received data: {json.dumps(data, indent=2)}")
         
         # Decrypt the request
         flow_data, aes_key, iv = decrypt_request(data)
+        print(f"Decrypted flow data: {json.dumps(flow_data, indent=2)}")
         
         # Check if it's a health check ping
-        if flow_data.get('action') == 'ping':
+        if flow_data.get('action') == 'ping' or flow_data.get('screen') == 'PING':
+            print("Health check ping detected")
             response_data = {
                 "version": "3.0",
                 "data": {
@@ -133,6 +137,7 @@ def flow_endpoint():
             }
         else:
             # It's booking data - send to n8n
+            print("Processing booking data")
             booking_data = {
                 "customerName": flow_data.get('customer_name', 'N/A'),
                 "phoneNumber": flow_data.get('phone_number', 'N/A'),
@@ -147,6 +152,7 @@ def flow_endpoint():
             # Send to n8n
             try:
                 requests.post(N8N_WEBHOOK_URL, json=booking_data, timeout=5)
+                print("Sent to n8n successfully")
             except Exception as e:
                 print(f"Error sending to n8n: {e}")
             
@@ -158,13 +164,17 @@ def flow_endpoint():
             }
         
         # Encrypt response
+        print("Encrypting response...")
         encrypted_response = encrypt_response(response_data, aes_key, iv)
+        print(f"Encrypted response (first 50 chars): {encrypted_response[:50]}")
         
-        return Response(encrypted_response, mimetype='text/plain')
+        return Response(encrypted_response, mimetype='text/plain', status=200)
         
     except Exception as e:
-        print(f"Error: {e}")
-        return Response("Error", status=500)
+        print(f"ERROR: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return Response(json.dumps({"error": str(e)}), status=500, mimetype='application/json')
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
