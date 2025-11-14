@@ -84,23 +84,17 @@ def decrypt_request(data):
     return flow_data, aes_key, iv
 
 def encrypt_response(response_data, aes_key, iv):
-    """Encrypt the response - increment IV to avoid reuse in GCM"""
+    """Encrypt the response - use SAME IV as request"""
     response_string = json.dumps(response_data)
     
-    # Convert IV to integer, increment by 1, convert back
-    iv_int = int.from_bytes(iv, byteorder='big')
-    new_iv_int = iv_int + 1
-    # Keep same length as original IV
-    new_iv = new_iv_int.to_bytes(len(iv), byteorder='big')
-    
-    print(f"Original IV: {base64.b64encode(iv).decode()}")
-    print(f"New IV (incremented): {base64.b64encode(new_iv).decode()}")
     print(f"Encrypting with AES key length: {len(aes_key)} bytes")
+    print(f"IV length: {len(iv)} bytes")
+    print(f"IV (base64): {base64.b64encode(iv).decode()}")
     print(f"Response to encrypt: {response_string}")
     
     cipher = Cipher(
         algorithms.AES(aes_key),
-        modes.GCM(new_iv),
+        modes.GCM(iv),
         backend=default_backend()
     )
     encryptor = cipher.encryptor()
