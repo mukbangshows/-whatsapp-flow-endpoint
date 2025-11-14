@@ -40,8 +40,8 @@ a0D/n+d/s8i7ImsJcJYne0wILVVRJQ0ydM9ryKBB6HgdJ6l6K8cVeuQMu+CAdtCa
 9JjZgp8y2bdf+oMzf2D8xw==
 -----END PRIVATE KEY-----'''
 
-# Your n8n webhook URL for receiving booking data
-N8N_WEBHOOK_URL = os.getenv('N8N_WEBHOOK_URL', 'https://automate.besttravelai.com/webhook/whatsapp-booking-received')
+# Your Make.com webhook URL for receiving booking data
+MAKE_WEBHOOK_URL = os.getenv('MAKE_WEBHOOK_URL', 'https://hook.eu2.make.com/91rccc3ncyftsh50252jdg5qk2iwq5z3')
 
 def decrypt_request(data):
     """Decrypt the WhatsApp Flow request"""
@@ -162,12 +162,12 @@ def flow_endpoint():
                 "guestCount": flow_data.get('guest_count', 'N/A')
             }
             
-            # Send to n8n
+            # Send to Make.com
             try:
-                requests.post(N8N_WEBHOOK_URL, json=booking_data, timeout=5)
-                print("Sent to n8n successfully")
+                requests.post(MAKE_WEBHOOK_URL, json=booking_data, timeout=5)
+                print("Sent to Make.com successfully")
             except Exception as e:
-                print(f"Error sending to n8n: {e}")
+                print(f"Error sending to Make.com: {e}")
             
             response_data = {
                 "data": {
